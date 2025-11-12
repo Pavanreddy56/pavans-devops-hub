@@ -30,7 +30,14 @@ export const ContactSection = () => {
       return;
     }
 
-    // In a real application, you would send this data to a backend
+    // Save message to localStorage for admin
+    const messages = JSON.parse(localStorage.getItem('contactMessages') || '[]');
+    messages.push({
+      ...formData,
+      date: new Date().toLocaleDateString()
+    });
+    localStorage.setItem('contactMessages', JSON.stringify(messages));
+
     toast.success("Message sent successfully! I'll get back to you soon.");
     setFormData({ name: "", email: "", message: "" });
   };

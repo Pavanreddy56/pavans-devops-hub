@@ -1,60 +1,57 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, ArrowRight } from "lucide-react";
+import { Calendar, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
 
-const blogPosts = [
+const defaultBlogPosts = [
   {
     title: "Deploying Microservices on AWS EKS with Helm",
     excerpt: "A comprehensive guide to deploying and managing microservices on Amazon EKS using Helm charts and best practices for production environments.",
     date: "2024-11-15",
-    readTime: "8 min read",
-    tags: ["Kubernetes", "AWS", "Microservices"],
-    slug: "#",
+    link: "#",
   },
   {
     title: "Infrastructure as Code: Terraform vs CloudFormation",
     excerpt: "An in-depth comparison of Terraform and AWS CloudFormation for infrastructure automation, covering pros, cons, and use cases.",
     date: "2024-11-08",
-    readTime: "6 min read",
-    tags: ["Terraform", "AWS", "IaC"],
-    slug: "#",
+    link: "#",
   },
   {
     title: "Building CI/CD Pipelines with Jenkins and Docker",
     excerpt: "Step-by-step tutorial on creating robust CI/CD pipelines using Jenkins, Docker, and GitHub for automated deployments.",
     date: "2024-10-28",
-    readTime: "10 min read",
-    tags: ["Jenkins", "Docker", "CI/CD"],
-    slug: "#",
+    link: "#",
   },
   {
     title: "Securing Your AWS Infrastructure",
     excerpt: "Best practices for securing AWS infrastructure including IAM policies, VPC design, encryption, and security monitoring.",
     date: "2024-10-15",
-    readTime: "7 min read",
-    tags: ["AWS", "Security", "IAM"],
-    slug: "#",
+    link: "#",
   },
   {
     title: "Ansible Automation: From Basics to Advanced",
     excerpt: "Master Ansible for configuration management and deployment automation with practical examples and real-world scenarios.",
     date: "2024-10-05",
-    readTime: "9 min read",
-    tags: ["Ansible", "Automation", "DevOps"],
-    slug: "#",
+    link: "#",
   },
   {
     title: "Monitoring Kubernetes with Prometheus and Grafana",
     excerpt: "Complete guide to setting up monitoring and alerting for Kubernetes clusters using Prometheus and Grafana.",
     date: "2024-09-22",
-    readTime: "8 min read",
-    tags: ["Kubernetes", "Monitoring", "Grafana"],
-    slug: "#",
+    link: "#",
   },
 ];
 
 export const BlogSection = () => {
+  const [blogPosts, setBlogPosts] = useState(defaultBlogPosts);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('blogData');
+    if (saved) {
+      setBlogPosts(JSON.parse(saved));
+    }
+  }, []);
   return (
     <section id="blog" className="py-20 px-4 sm:px-6 lg:px-8">
       <div className="container mx-auto">
@@ -80,10 +77,6 @@ export const BlogSection = () => {
                     <Calendar className="h-4 w-4" />
                     <span>{new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    <span>{post.readTime}</span>
-                  </div>
                 </div>
                 <CardTitle className="group-hover:text-primary transition-smooth line-clamp-2">
                   {post.title}
@@ -93,17 +86,6 @@ export const BlogSection = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex-1">
-                <div className="flex flex-wrap gap-2">
-                  {post.tags.map((tag) => (
-                    <Badge
-                      key={tag}
-                      variant="secondary"
-                      className="bg-primary/10 text-primary"
-                    >
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
               </CardContent>
               <CardFooter>
                 <Button
@@ -111,7 +93,7 @@ export const BlogSection = () => {
                   className="w-full group-hover:text-primary group-hover:bg-primary/10 transition-smooth"
                   asChild
                 >
-                  <a href={post.slug}>
+                  <a href={post.link}>
                     Read More
                     <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-smooth" />
                   </a>

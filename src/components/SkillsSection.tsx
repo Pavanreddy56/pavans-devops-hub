@@ -10,8 +10,9 @@ import {
   Terminal,
   Network,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 
-const skillCategories = [
+const defaultSkillCategories = [
   {
     title: "Cloud Platforms",
     icon: Cloud,
@@ -84,7 +85,32 @@ const skillCategories = [
   },
 ];
 
+const iconMap: Record<string, any> = {
+  Cloud,
+  Container,
+  Database,
+  GitBranch,
+  Server,
+  Settings,
+  Terminal,
+  Network,
+};
+
 export const SkillsSection = () => {
+  const [skillCategories, setSkillCategories] = useState(defaultSkillCategories);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('skillsData');
+    if (saved) {
+      const savedData = JSON.parse(saved);
+      // Map icon names back to icon components
+      const categoriesWithIcons = savedData.map((cat: any) => ({
+        ...cat,
+        icon: iconMap[cat.title.split(' ')[0]] || Terminal,
+      }));
+      setSkillCategories(categoriesWithIcons);
+    }
+  }, []);
   return (
     <section id="skills" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
       <div className="container mx-auto">

@@ -1,8 +1,34 @@
 import { Button } from "@/components/ui/button";
 import { Github, Linkedin, Mail, Download } from "lucide-react";
 import profilePhoto from "@/assets/profile-photo.jpg";
+import { useState, useEffect } from "react";
 
 export const HeroSection = () => {
+  const [aboutData, setAboutData] = useState({
+    name: 'Pavan Reddy Cheedeti',
+    role: 'DevOps Engineer',
+    bio: 'A Cloud enthusiastic team player with 2+ years of experience in IT industry, specializing in AWS, Docker, Kubernetes, CI/CD pipelines, and infrastructure automation.',
+    linkedin: 'https://www.linkedin.com/in/pavan-reddy-cheedeti-918237281',
+    github: 'https://github.com/Pavanreddy56',
+    email: 'cpreddy.devops@gmail.com',
+  });
+  const [profileImage, setProfileImage] = useState(profilePhoto);
+  const [resumeUrl, setResumeUrl] = useState('#resume');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('aboutData');
+    if (saved) {
+      setAboutData(JSON.parse(saved));
+    }
+    const savedImage = localStorage.getItem('profileImage');
+    if (savedImage) {
+      setProfileImage(savedImage);
+    }
+    const savedResume = localStorage.getItem('resumeUrl');
+    if (savedResume) {
+      setResumeUrl(savedResume);
+    }
+  }, []);
   return (
     <section
       id="home"
@@ -17,20 +43,17 @@ export const HeroSection = () => {
                 Hi, I'm
               </p>
               <h1 className="text-5xl md:text-6xl font-bold mb-4">
-                <span className="text-gradient">Pavan Reddy</span>
+                <span className="text-gradient">{aboutData.name.split(' ').slice(0, 2).join(' ')}</span>
                 <br />
-                Cheedeti
+                {aboutData.name.split(' ').slice(2).join(' ')}
               </h1>
               <h2 className="text-2xl md:text-3xl font-semibold text-primary mb-4">
-                DevOps Engineer
+                {aboutData.role}
               </h2>
             </div>
 
             <p className="text-lg text-muted-foreground leading-relaxed">
-              A Cloud enthusiastic team player with 2+ years of experience in IT industry, 
-              specializing in <span className="text-primary font-medium">AWS</span>, <span className="text-primary font-medium">Docker</span>, 
-              <span className="text-primary font-medium"> Kubernetes</span>, <span className="text-primary font-medium">CI/CD pipelines</span>, 
-              and infrastructure automation. Passionate about building scalable, secure, and efficient cloud solutions.
+              {aboutData.bio}
             </p>
 
             <div className="flex flex-wrap gap-4">
@@ -50,7 +73,7 @@ export const HeroSection = () => {
                 className="border-primary text-primary hover:bg-primary hover:text-white transition-smooth"
                 asChild
               >
-                <a href="#resume" download>
+                <a href={resumeUrl} download>
                   <Download className="mr-2 h-5 w-5" />
                   Download Resume
                 </a>
@@ -65,7 +88,7 @@ export const HeroSection = () => {
                 asChild
               >
                 <a
-                  href="https://github.com/Pavanreddy56"
+                  href={aboutData.github}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="GitHub"
@@ -80,7 +103,7 @@ export const HeroSection = () => {
                 asChild
               >
                 <a
-                  href="https://www.linkedin.com/in/pavan-reddy-cheedeti-918237281"
+                  href={aboutData.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="LinkedIn"
@@ -95,7 +118,7 @@ export const HeroSection = () => {
                 asChild
               >
                 <a
-                  href="mailto:cpreddy.devops@gmail.com"
+                  href={`mailto:${aboutData.email}`}
                   aria-label="Email"
                 >
                   <Mail className="h-6 w-6" />
@@ -109,8 +132,8 @@ export const HeroSection = () => {
             <div className="relative">
               <div className="absolute -inset-4 gradient-hero opacity-20 blur-2xl rounded-full animate-float"></div>
               <img
-                src={profilePhoto}
-                alt="Pavan Reddy Cheedeti - DevOps Engineer"
+                src={profileImage}
+                alt={`${aboutData.name} - ${aboutData.role}`}
                 className="relative w-64 h-64 md:w-80 md:h-80 rounded-full object-cover border-4 border-primary shadow-xl hover:shadow-glow transition-smooth hover:scale-105"
               />
             </div>

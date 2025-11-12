@@ -1,8 +1,18 @@
-import { Github, Linkedin, Mail, Heart } from "lucide-react";
+import { Github, Linkedin, Mail, Heart, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const [resumeUrl, setResumeUrl] = useState('#resume');
+
+  useEffect(() => {
+    const savedResume = localStorage.getItem('resumeUrl');
+    if (savedResume) {
+      setResumeUrl(savedResume);
+    }
+  }, []);
 
   return (
     <footer className="border-t border-border bg-card">
@@ -111,12 +121,23 @@ export const Footer = () => {
               </Button>
             </div>
             <Button
-              className="gradient-hero text-white hover:shadow-glow transition-smooth"
+              className="gradient-hero text-white hover:shadow-glow transition-smooth mb-2"
               asChild
             >
-              <a href="#resume" download>
+              <a href={resumeUrl} download>
                 Download Resume
               </a>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full hover:bg-primary/10 hover:text-primary hover:border-primary transition-smooth"
+              asChild
+            >
+              <Link to="/admin/login">
+                <Shield className="h-4 w-4 mr-2" />
+                Admin Login
+              </Link>
             </Button>
           </div>
         </div>

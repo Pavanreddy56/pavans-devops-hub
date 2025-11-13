@@ -3,54 +3,29 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
-
-const defaultBlogPosts = [
-  {
-    title: "Deploying Microservices on AWS EKS with Helm",
-    excerpt: "A comprehensive guide to deploying and managing microservices on Amazon EKS using Helm charts and best practices for production environments.",
-    date: "2024-11-15",
-    link: "#",
-  },
-  {
-    title: "Infrastructure as Code: Terraform vs CloudFormation",
-    excerpt: "An in-depth comparison of Terraform and AWS CloudFormation for infrastructure automation, covering pros, cons, and use cases.",
-    date: "2024-11-08",
-    link: "#",
-  },
-  {
-    title: "Building CI/CD Pipelines with Jenkins and Docker",
-    excerpt: "Step-by-step tutorial on creating robust CI/CD pipelines using Jenkins, Docker, and GitHub for automated deployments.",
-    date: "2024-10-28",
-    link: "#",
-  },
-  {
-    title: "Securing Your AWS Infrastructure",
-    excerpt: "Best practices for securing AWS infrastructure including IAM policies, VPC design, encryption, and security monitoring.",
-    date: "2024-10-15",
-    link: "#",
-  },
-  {
-    title: "Ansible Automation: From Basics to Advanced",
-    excerpt: "Master Ansible for configuration management and deployment automation with practical examples and real-world scenarios.",
-    date: "2024-10-05",
-    link: "#",
-  },
-  {
-    title: "Monitoring Kubernetes with Prometheus and Grafana",
-    excerpt: "Complete guide to setting up monitoring and alerting for Kubernetes clusters using Prometheus and Grafana.",
-    date: "2024-09-22",
-    link: "#",
-  },
-];
+import { supabase } from "@/integrations/supabase/client";
 
 export const BlogSection = () => {
-  const [blogPosts, setBlogPosts] = useState(defaultBlogPosts);
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('blogData');
-    if (saved) {
-      setBlogPosts(JSON.parse(saved));
-    }
+    const fetchBlogs = async () => {
+      const { data } = await supabase
+        .from('blogs')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (data && data.length > 0) {
+        setBlogPosts(data.map(b => ({
+          title: b.title,
+          excerpt: b.excerpt,
+          date: b.date,
+          link: '#',
+        })));
+      }
+    };
+
+    fetchBlogs();
   }, []);
   return (
     <section id="blog" className="py-20 px-4 sm:px-6 lg:px-8">

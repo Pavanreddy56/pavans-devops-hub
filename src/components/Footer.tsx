@@ -2,16 +2,25 @@ import { Github, Linkedin, Mail, Heart, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [resumeUrl, setResumeUrl] = useState('#resume');
 
   useEffect(() => {
-    const savedResume = localStorage.getItem('resumeUrl');
-    if (savedResume) {
-      setResumeUrl(savedResume);
-    }
+    const fetchResume = async () => {
+      const { data } = await supabase
+        .from('resume')
+        .select('file_url')
+        .maybeSingle();
+
+      if (data?.file_url) {
+        setResumeUrl(data.file_url);
+      }
+    };
+
+    fetchResume();
   }, []);
 
   return (

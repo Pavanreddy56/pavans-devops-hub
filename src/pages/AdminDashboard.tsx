@@ -10,6 +10,7 @@ import { AdminProjects } from '@/components/admin/AdminProjects';
 import { AdminBlog } from '@/components/admin/AdminBlog';
 import { AdminMessages } from '@/components/admin/AdminMessages';
 import { AdminResume } from '@/components/admin/AdminResume';
+import { AdminGithub } from '@/components/admin/AdminGithub';
 
 export default function AdminDashboard() {
   const { isAdmin, logout } = useAdmin();
@@ -45,10 +46,11 @@ export default function AdminDashboard() {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="about" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7">
             <TabsTrigger value="about">About</TabsTrigger>
             <TabsTrigger value="skills">Skills</TabsTrigger>
             <TabsTrigger value="projects">Projects</TabsTrigger>
+            <TabsTrigger value="github">GitHub</TabsTrigger>
             <TabsTrigger value="blog">Blog</TabsTrigger>
             <TabsTrigger value="messages">Messages</TabsTrigger>
             <TabsTrigger value="resume">Resume</TabsTrigger>
@@ -64,6 +66,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="projects">
             <AdminProjects />
+          </TabsContent>
+
+          <TabsContent value="github">
+            <AdminGithub />
           </TabsContent>
 
           <TabsContent value="blog">

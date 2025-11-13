@@ -5,47 +5,88 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const AdminAbout = () => {
   const [formData, setFormData] = useState({
-    name: 'Pavan Reddy Cheedeti',
-    role: 'DevOps Engineer',
-    bio: 'A Cloud enthusiastic team player with 2+ years of experience in DevOps/Cloud Engineering...',
-    location: 'Hyderabad, TG',
-    email: 'cpreddy.devops@gmail.com',
-    phone: '+91 7337531523',
-    linkedin: 'https://www.linkedin.com/in/pavan-reddy-cheedeti-918237281',
-    github: 'https://github.com/Pavanreddy56',
+    name: '',
+    role: '',
+    bio: '',
+    profileImageUrl: '',
   });
+  const [aboutId, setAboutId] = useState<string | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('aboutData');
-    if (saved) {
-      setFormData(JSON.parse(saved));
-    }
+    fetchAboutData();
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    localStorage.setItem('aboutData', JSON.stringify(formData));
-    toast({
-      title: "Success",
-      description: "About section updated successfully!",
-    });
+  const fetchAboutData = async () => {
+    const { data } = await supabase
+      .from('about')
+      .select('*')
+      .maybeSingle();
+
+    if (data) {
+      setAboutId(data.id);
+      setFormData({
+        name: data.name,
+        role: data.role,
+        bio: data.bio,
+        profileImageUrl: data.profile_image_url || '',
+      });
+    }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        localStorage.setItem('profileImage', reader.result as string);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (aboutId) {
+      const { error } = await supabase
+        .from('about')
+        .update({
+          name: formData.name,
+          role: formData.role,
+          bio: formData.bio,
+          profile_image_url: formData.profileImageUrl,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', aboutId);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to update about section",
+          variant: "destructive",
+        });
+      } else {
         toast({
           title: "Success",
-          description: "Profile image updated successfully!",
+          description: "About section updated successfully!",
         });
-      };
-      reader.readAsDataURL(file);
+      }
+    } else {
+      const { error } = await supabase
+        .from('about')
+        .insert([{
+          name: formData.name,
+          role: formData.role,
+          bio: formData.bio,
+          profile_image_url: formData.profileImageUrl,
+        }]);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to create about section",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "About section created successfully!",
+        });
+        fetchAboutData();
+      }
     }
   };
 
@@ -64,6 +105,7 @@ export const AdminAbout = () => {
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
               />
             </div>
             <div className="space-y-2">
@@ -72,6 +114,7 @@ export const AdminAbout = () => {
                 id="role"
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                required
               />
             </div>
           </div>
@@ -83,65 +126,21 @@ export const AdminAbout = () => {
               rows={4}
               value={formData.bio}
               onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-            />
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="linkedin">LinkedIn</Label>
-              <Input
-                id="linkedin"
-                value={formData.linkedin}
-                onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="github">GitHub</Label>
-            <Input
-              id="github"
-              value={formData.github}
-              onChange={(e) => setFormData({ ...formData, github: e.target.value })}
+              required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="profileImage">Profile Image</Label>
+            <Label htmlFor="profileImageUrl">Profile Image URL</Label>
             <Input
-              id="profileImage"
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
+              id="profileImageUrl"
+              value={formData.profileImageUrl}
+              onChange={(e) => setFormData({ ...formData, profileImageUrl: e.target.value })}
+              placeholder="Enter image URL or path"
             />
+            <p className="text-sm text-muted-foreground">
+              Enter a URL or path to your profile image
+            </p>
           </div>
 
           <Button type="submit">Save Changes</Button>

@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Mail, Linkedin, Github, MapPin, Phone } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const ContactSection = () => {
   const [formData, setFormData] = useState({
@@ -14,7 +15,7 @@ export const ContactSection = () => {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Basic validation
@@ -30,13 +31,15 @@ export const ContactSection = () => {
       return;
     }
 
-    // Save message to localStorage for admin
-    const messages = JSON.parse(localStorage.getItem('contactMessages') || '[]');
-    messages.push({
-      ...formData,
-      date: new Date().toLocaleDateString()
-    });
-    localStorage.setItem('contactMessages', JSON.stringify(messages));
+    // Save message to database
+    const { error } = await supabase
+      .from('contact_messages')
+      .insert([formData]);
+
+    if (error) {
+      toast.error("Failed to send message. Please try again.");
+      return;
+    }
 
     toast.success("Message sent successfully! I'll get back to you soon.");
     setFormData({ name: "", email: "", message: "" });

@@ -3,60 +3,30 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Github } from "lucide-react";
 import { useState, useEffect } from "react";
-
-const defaultProjects = [
-  {
-    title: "AWS Infrastructure Automation",
-    description: "Automated AWS infrastructure deployment using Terraform and CloudFormation, including VPC, EC2, RDS, S3, and ELB configuration with IAM security policies.",
-    tech: ["AWS", "Terraform", "CloudFormation", "IAM", "VPC"],
-    github: "#",
-    live: "#",
-  },
-  {
-    title: "CI/CD Pipeline Implementation",
-    description: "Built end-to-end CI/CD pipelines using Jenkins, GitHub, Maven, and SonarQube for automated build, test, and deployment of microservices.",
-    tech: ["Jenkins", "GitHub", "Maven", "SonarQube", "Docker"],
-    github: "#",
-    live: "#",
-  },
-  {
-    title: "Kubernetes Cluster on AWS EKS",
-    description: "Deployed and managed production-ready Kubernetes clusters on AWS EKS with Helm charts, auto-scaling, and monitoring using Prometheus and Grafana.",
-    tech: ["Kubernetes", "AWS EKS", "Helm", "Prometheus", "Grafana"],
-    github: "#",
-    live: "#",
-  },
-  {
-    title: "Microservices Deployment with Docker",
-    description: "Containerized Java REST APIs and deployed them using Docker and Amazon ECS. Implemented service discovery and load balancing.",
-    tech: ["Docker", "Amazon ECS", "Java", "Microservices", "REST API"],
-    github: "#",
-    live: "#",
-  },
-  {
-    title: "Configuration Management with Ansible",
-    description: "Developed Ansible playbooks and roles for automated server configuration, application deployment, and infrastructure management across multiple environments.",
-    tech: ["Ansible", "Python", "Linux", "YAML", "Shell Scripting"],
-    github: "#",
-    live: "#",
-  },
-  {
-    title: "Hybrid Cloud Migration",
-    description: "Planned and executed hybrid cloud migration from on-premises to AWS with minimal downtime. Implemented monitoring using ELK stack and New Relic.",
-    tech: ["AWS", "Azure", "ELK Stack", "New Relic", "Migration"],
-    github: "#",
-    live: "#",
-  },
-];
+import { supabase } from "@/integrations/supabase/client";
 
 export const ProjectsSection = () => {
-  const [projects, setProjects] = useState(defaultProjects);
+  const [projects, setProjects] = useState<any[]>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('projectsData');
-    if (saved) {
-      setProjects(JSON.parse(saved));
-    }
+    const fetchProjects = async () => {
+      const { data } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (data && data.length > 0) {
+        setProjects(data.map(p => ({
+          title: p.title,
+          description: p.description,
+          tech: p.tech,
+          github: p.github_url || '#',
+          live: p.live_url || '#',
+        })));
+      }
+    };
+
+    fetchProjects();
   }, []);
   return (
     <section id="projects" className="py-20 px-4 sm:px-6 lg:px-8">

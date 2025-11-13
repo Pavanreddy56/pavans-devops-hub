@@ -11,6 +11,7 @@ import {
   Network,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const defaultSkillCategories = [
   {
@@ -100,16 +101,32 @@ export const SkillsSection = () => {
   const [skillCategories, setSkillCategories] = useState(defaultSkillCategories);
 
   useEffect(() => {
-    const saved = localStorage.getItem('skillsData');
-    if (saved) {
-      const savedData = JSON.parse(saved);
-      // Map icon names back to icon components
-      const categoriesWithIcons = savedData.map((cat: any) => ({
-        ...cat,
-        icon: iconMap[cat.title.split(' ')[0]] || Terminal,
-      }));
-      setSkillCategories(categoriesWithIcons);
-    }
+    const fetchSkills = async () => {
+      const { data } = await supabase
+        .from('skills')
+        .select('*')
+        .order('category');
+
+      if (data && data.length > 0) {
+        // Group skills by category
+        const grouped = data.reduce((acc: any[], skill: any) => {
+          const existing = acc.find(c => c.title === skill.category);
+          if (existing) {
+            existing.skills.push({ name: skill.name, level: skill.level });
+          } else {
+            acc.push({
+              title: skill.category,
+              icon: iconMap[skill.category.split(' ')[0]] || Terminal,
+              skills: [{ name: skill.name, level: skill.level }],
+            });
+          }
+          return acc;
+        }, []);
+        setSkillCategories(grouped);
+      }
+    };
+
+    fetchSkills();
   }, []);
   return (
     <section id="skills" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">

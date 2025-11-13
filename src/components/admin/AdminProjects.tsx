@@ -6,54 +6,99 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { Trash2, Plus, Edit } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Project {
+  id?: string;
   title: string;
   description: string;
   tech: string[];
-  github: string;
-  live: string;
+  github_url: string;
+  live_url: string;
 }
 
 export const AdminProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Project>({
     title: '',
     description: '',
     tech: [],
-    github: '',
-    live: '',
+    github_url: '',
+    live_url: '',
   });
   const [techInput, setTechInput] = useState('');
 
   useEffect(() => {
-    const saved = localStorage.getItem('projectsData');
-    if (saved) {
-      setProjects(JSON.parse(saved));
-    }
+    fetchProjects();
   }, []);
 
-  const saveProjects = (updatedProjects: Project[]) => {
-    localStorage.setItem('projectsData', JSON.stringify(updatedProjects));
-    setProjects(updatedProjects);
-    toast({
-      title: "Success",
-      description: "Projects updated successfully!",
-    });
+  const fetchProjects = async () => {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch projects",
+        variant: "destructive",
+      });
+    } else {
+      setProjects(data || []);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingIndex !== null) {
-      const updated = [...projects];
-      updated[editingIndex] = formData;
-      saveProjects(updated);
-      setEditingIndex(null);
+    
+    if (editingId) {
+      const { error } = await supabase
+        .from('projects')
+        .update({
+          title: formData.title,
+          description: formData.description,
+          tech: formData.tech,
+          github_url: formData.github_url,
+          live_url: formData.live_url,
+        })
+        .eq('id', editingId);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to update project",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Project updated successfully!",
+        });
+        setEditingId(null);
+      }
     } else {
-      saveProjects([...projects, formData]);
+      const { error } = await supabase
+        .from('projects')
+        .insert([formData]);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to add project",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Project added successfully!",
+        });
+      }
     }
+    
     resetForm();
+    fetchProjects();
   };
 
   const resetForm = () => {
@@ -61,22 +106,44 @@ export const AdminProjects = () => {
       title: '',
       description: '',
       tech: [],
-      github: '',
-      live: '',
+      github_url: '',
+      live_url: '',
     });
     setTechInput('');
-    setEditingIndex(null);
+    setEditingId(null);
   };
 
-  const editProject = (index: number) => {
-    setFormData(projects[index]);
-    setTechInput(projects[index].tech.join(', '));
-    setEditingIndex(index);
+  const editProject = (project: any) => {
+    setFormData({
+      title: project.title,
+      description: project.description,
+      tech: project.tech,
+      github_url: project.github_url,
+      live_url: project.live_url,
+    });
+    setTechInput(project.tech.join(', '));
+    setEditingId(project.id);
   };
 
-  const deleteProject = (index: number) => {
-    const updated = projects.filter((_, i) => i !== index);
-    saveProjects(updated);
+  const deleteProject = async (id: string) => {
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete project",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Project deleted successfully!",
+      });
+      fetchProjects();
+    }
   };
 
   const handleTechChange = (value: string) => {
@@ -88,7 +155,7 @@ export const AdminProjects = () => {
     <div className="grid md:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>{editingIndex !== null ? 'Edit Project' : 'Add New Project'}</CardTitle>
+          <CardTitle>{editingId ? 'Edit Project' : 'Add New Project'}</CardTitle>
           <CardDescription>Fill in the project details</CardDescription>
         </CardHeader>
         <CardContent>
@@ -128,8 +195,8 @@ export const AdminProjects = () => {
               <Label htmlFor="github">GitHub URL</Label>
               <Input
                 id="github"
-                value={formData.github}
-                onChange={(e) => setFormData({ ...formData, github: e.target.value })}
+                value={formData.github_url}
+                onChange={(e) => setFormData({ ...formData, github_url: e.target.value })}
               />
             </div>
 
@@ -137,16 +204,16 @@ export const AdminProjects = () => {
               <Label htmlFor="live">Live URL</Label>
               <Input
                 id="live"
-                value={formData.live}
-                onChange={(e) => setFormData({ ...formData, live: e.target.value })}
+                value={formData.live_url}
+                onChange={(e) => setFormData({ ...formData, live_url: e.target.value })}
               />
             </div>
 
             <div className="flex gap-2">
               <Button type="submit" className="flex-1">
-                {editingIndex !== null ? 'Update' : 'Add'} Project
+                {editingId ? 'Update' : 'Add'} Project
               </Button>
-              {editingIndex !== null && (
+              {editingId && (
                 <Button type="button" variant="outline" onClick={resetForm}>
                   Cancel
                 </Button>
@@ -163,8 +230,8 @@ export const AdminProjects = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {projects.map((project, index) => (
-              <div key={index} className="p-4 border rounded-lg">
+            {projects.map((project) => (
+              <div key={project.id} className="p-4 border rounded-lg">
                 <h3 className="font-semibold mb-2">{project.title}</h3>
                 <p className="text-sm text-muted-foreground mb-2">{project.description}</p>
                 <div className="flex gap-2 flex-wrap mb-3">
@@ -175,11 +242,11 @@ export const AdminProjects = () => {
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => editProject(index)}>
+                  <Button size="sm" variant="outline" onClick={() => editProject(project)}>
                     <Edit className="h-3 w-3 mr-1" />
                     Edit
                   </Button>
-                  <Button size="sm" variant="destructive" onClick={() => deleteProject(index)}>
+                  <Button size="sm" variant="destructive" onClick={() => deleteProject(project.id!)}>
                     <Trash2 className="h-3 w-3 mr-1" />
                     Delete
                   </Button>

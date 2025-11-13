@@ -1,41 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Github, GitFork, Star, ExternalLink } from "lucide-react";
-
-const recentRepos = [
-  {
-    name: "aws-terraform-infrastructure",
-    description: "Production-ready AWS infrastructure as code using Terraform",
-    stars: 45,
-    forks: 12,
-    language: "HCL",
-    url: "https://github.com/Pavanreddy56",
-  },
-  {
-    name: "kubernetes-helm-charts",
-    description: "Collection of Helm charts for deploying applications on Kubernetes",
-    stars: 38,
-    forks: 9,
-    language: "YAML",
-    url: "https://github.com/Pavanreddy56",
-  },
-  {
-    name: "jenkins-pipeline-library",
-    description: "Reusable Jenkins pipeline scripts for CI/CD automation",
-    stars: 52,
-    forks: 15,
-    language: "Groovy",
-    url: "https://github.com/Pavanreddy56",
-  },
-  {
-    name: "ansible-playbooks",
-    description: "Ansible playbooks for server configuration and deployment",
-    stars: 31,
-    forks: 8,
-    language: "YAML",
-    url: "https://github.com/Pavanreddy56",
-  },
-];
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const languageColors: Record<string, string> = {
   HCL: "#844fba",
@@ -43,9 +10,28 @@ const languageColors: Record<string, string> = {
   Groovy: "#4298b8",
   Python: "#3572a5",
   Shell: "#89e051",
+  TypeScript: "#3178c6",
+  JavaScript: "#f1e05a",
 };
 
 export const GitHubSection = () => {
+  const [repos, setRepos] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchRepos = async () => {
+      const { data } = await supabase
+        .from('github_repos')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(4);
+
+      if (data) {
+        setRepos(data);
+      }
+    };
+
+    fetchRepos();
+  }, []);
   return (
     <section id="github" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
       <div className="container mx-auto">
@@ -73,7 +59,7 @@ export const GitHubSection = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-          {recentRepos.map((repo, index) => (
+          {repos.map((repo, index) => (
             <Card
               key={repo.name}
               className="group hover:shadow-lg transition-smooth hover:-translate-y-1 animate-fade-in-up"

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Github, Linkedin, Mail, Download } from "lucide-react";
 import profilePhoto from "@/assets/profile-photo.jpg";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const HeroSection = () => {
   const [aboutData, setAboutData] = useState({
@@ -16,18 +17,40 @@ export const HeroSection = () => {
   const [resumeUrl, setResumeUrl] = useState('#resume');
 
   useEffect(() => {
-    const saved = localStorage.getItem('aboutData');
-    if (saved) {
-      setAboutData(JSON.parse(saved));
-    }
-    const savedImage = localStorage.getItem('profileImage');
-    if (savedImage) {
-      setProfileImage(savedImage);
-    }
-    const savedResume = localStorage.getItem('resumeUrl');
-    if (savedResume) {
-      setResumeUrl(savedResume);
-    }
+    const fetchAboutData = async () => {
+      const { data } = await supabase
+        .from('about')
+        .select('*')
+        .maybeSingle();
+
+      if (data) {
+        setAboutData({
+          name: data.name,
+          role: data.role,
+          bio: data.bio,
+          linkedin: 'https://www.linkedin.com/in/pavan-reddy-cheedeti-918237281',
+          github: 'https://github.com/Pavanreddy56',
+          email: 'cpreddy.devops@gmail.com',
+        });
+        if (data.profile_image_url) {
+          setProfileImage(data.profile_image_url);
+        }
+      }
+    };
+
+    const fetchResume = async () => {
+      const { data } = await supabase
+        .from('resume')
+        .select('file_url')
+        .maybeSingle();
+
+      if (data?.file_url) {
+        setResumeUrl(data.file_url);
+      }
+    };
+
+    fetchAboutData();
+    fetchResume();
   }, []);
   return (
     <section

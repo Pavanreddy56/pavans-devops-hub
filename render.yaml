@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: portfolio
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_SUPABASE_URL
+        value: https://ynxitthswhcolqaojjlw.supabase.co
+      - key: VITE_SUPABASE_PUBLISHABLE_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlueGl0dGhzd2hjb2xxYW9qamx3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMwMDAzMTQsImV4cCI6MjA3ODU3NjMxNH0.zvygj4aM_-IViM6HKr_2l4aPZr6yacuPQQDWDOIjL7Y
+      - key: VITE_SUPABASE_PROJECT_ID
+        value: ynxitthswhcolqaojjlw
